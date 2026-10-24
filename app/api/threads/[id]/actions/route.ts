@@ -1,0 +1,2 @@
+import { browserActor, repository, errorResponse, sameOrigin, jsonBody } from "../../../../lib/server";
+export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){try{sameOrigin(request);const actor=await browserActor(),body=await jsonBody(request),{id}=await params;return Response.json(await(await repository(body.projectId,body.artifactId)).act(id,body.action,body.operationKey,actor))}catch(e){return errorResponse(e)}}

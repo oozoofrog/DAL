@@ -1,0 +1,2 @@
+import { browserActor, repository, errorResponse } from "../../lib/server";
+export async function GET(request:Request){try{await browserActor();return Response.json(await(await repository(new URL(request.url).searchParams.get('projectId')??undefined,new URL(request.url).searchParams.get('artifactId')??undefined)).snapshot(),{headers:{"cache-control":"no-store"}})}catch(e){return errorResponse(e)}}

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Dot Workspace</title>
+  <desc id="desc">An evergreen conversation bubble framing a warm white review card, with a small amber spark.</desc>
+  <rect width="1024" height="1024" rx="224" fill="#F4F0E6"/>
+  <path d="M310 176h404c108 0 190 79 190 186v204c0 104-81 184-188 184H430c-33 39-89 79-172 111 29-52 43-90 45-125-87-10-145-80-145-170V362c0-107 59-186 152-186Z" fill="#17463A"/>
+  <rect x="324" y="282" width="376" height="342" rx="46" fill="#FFFCF5"/>
+  <rect x="372" y="330" width="150" height="14" rx="7" fill="#17463A" opacity=".92"/>
+  <rect x="372" y="373" width="280" height="126" rx="24" fill="#E9EFE7"/>
+  <path d="M400 467V424l38-26 38 20 43-39 45 31 56-28v85Z" fill="#B8CEC0"/>
+  <path d="M400 467V448l38-20 39 14 42-27 45 25 56-23v50Z" fill="#739985"/>
+  <circle cx="563" cy="418" r="10" fill="#E4A748"/>
+  <rect x="372" y="536" width="214" height="12" rx="6" fill="#17463A" opacity=".8"/>
+  <rect x="372" y="570" width="148" height="10" rx="5" fill="#17463A" opacity=".28"/>
+  <path d="M747 244c8 31 16 39 47 47-31 8-39 16-47 47-8-31-16-39-47-47 31-8 39-16 47-47Z" fill="#E4A748"/>
+</svg>

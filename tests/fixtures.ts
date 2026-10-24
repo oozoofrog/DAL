@@ -1,0 +1,3 @@
+import type {Database} from '../app/lib/repository.ts';
+export const initialVersion={id:'fixture-source',label:'Source fixture',mediaHash:'1'.repeat(64),durationMs:12000,fps:24};
+export async function seedWorkspace(db:Database){const now='2026-01-01T00:00:00Z';await db.batch([db.prepare('INSERT INTO projects(id,name,summary,created_at,updated_at) VALUES(?,?,?,?,?)').bind('test-project','Fixture project','Synthetic test data',now,now),db.prepare('INSERT INTO artifacts(id,project_id,name,kind,created_at,updated_at) VALUES(?,?,?,?,?,?)').bind('test-video','test-project','Fixture video','video',now,now)]);}

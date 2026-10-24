@@ -1,0 +1,2 @@
+import {workspace,browserActor,sameOrigin,jsonBody,errorResponse} from '../../../../lib/server';
+export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){try{sameOrigin(request);const actor=await browserActor(),body=await jsonBody(request);return Response.json(await(await workspace()).toolAct((await params).id,body.action,body.operationKey,actor))}catch(e){return errorResponse(e)}}
