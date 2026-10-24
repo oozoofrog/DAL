@@ -88,18 +88,11 @@ struct RootView: View {
         Divider()
         HStack(spacing: 6) {
           Circle().fill(store.connected ? Color.green : Color.gray).frame(width: 6, height: 6)
-          Text(store.connected ? "저장소 연결됨" : "연결 대기").font(.system(size: 14)).foregroundStyle(
+          Text(store.connected ? "저장소 연결됨" : "연결되지 않음").font(.system(size: 14)).foregroundStyle(
             mutedInk)
         }
-        Button(store.connected ? "연결 끊기" : "작업실 로그인") {
-          if store.connected {
-            store.disconnect()
-          } else {
-            store.error = nil
-            store.beginLogin()
-          }
-        }
-        .buttonStyle(WorkspaceButtonStyle(prominent: !store.connected))
+        Button("dot 연결 상태") { store.showConnectionStatus() }
+        .buttonStyle(WorkspaceButtonStyle())
       }
       .padding(22).frame(minWidth: 245).background(ivory)
     } detail: {
@@ -131,8 +124,8 @@ struct RootView: View {
     }
     .navigationSplitViewStyle(.balanced).frame(minWidth: 1100, minHeight: 750).font(
       .system(size: 16)
-    ).foregroundStyle(ink).sheet(isPresented: $store.showingAuth) {
-      AuthenticationSheet().environmentObject(store)
+    ).foregroundStyle(ink).sheet(isPresented: $store.showingConnectionStatus) {
+      ConnectionStatusView().environmentObject(store)
     }
     .sheet(isPresented: $createProject) {
       VStack(alignment: .leading, spacing: 18) {
@@ -239,25 +232,25 @@ struct RootView: View {
           }
         } else {
           VStack(alignment: .leading, spacing: 21) {
-            Text("비공개 작업실에 연결해 주세요").font(.system(size: 24, weight: .semibold))
-            Text("실제 프로젝트와 저장된 대화는 로그인 후 불러옵니다.\n기기 영상은 연결 전에도 열어 볼 수 있어요.").lineSpacing(8)
+            Text("기기에 있는 영상을 열어 보세요").font(.system(size: 24, weight: .semibold))
+            Text(
+              "영상을 재생하고 원하는 장면으로 이동할 수 있어요.\n프로젝트와 저장된 대화는 dot 연결 방식이 준비되면 이어갈 수 있어요."
+            ).lineSpacing(8)
               .foregroundStyle(mutedInk)
             HStack(spacing: 13) {
-              Button("작업실 로그인") {
-                store.beginLogin()
-              }
-              .buttonStyle(WorkspaceButtonStyle(prominent: true))
               Button("기기 영상 열기") {
                 openLocalVideo()
               }
-              .buttonStyle(WorkspaceButtonStyle())
+              .buttonStyle(WorkspaceButtonStyle(prominent: true))
+              Button("dot 연결 상태") { store.showConnectionStatus() }
+                .buttonStyle(WorkspaceButtonStyle())
             }
           }
           .padding(35).frame(maxWidth: .infinity, alignment: .leading).background(.white).clipShape(
             RoundedRectangle(cornerRadius: 14))
         }
         Divider()
-        Text("dot의 새 답변은 새로고침으로 확인해요.").font(
+        Text("기기 영상은 이 Mac에서만 열어요. 현재 DAL에서 대화를 저장하거나 dot에게 보낼 수는 없어요.").font(
           .system(size: 14)
         ).foregroundStyle(mutedInk).lineSpacing(6)
       }
@@ -305,7 +298,7 @@ struct LocalVideoView: View {
           ), in: 0...max(media.duration, 0.01))
         Text(timeLabel(Int(media.time * 1000))).monospacedDigit()
       }
-      Text("이 영상은 기기에서만 열었습니다. 대화를 저장하려면 작업실에 연결해 프로젝트에 비공개로 업로드해 주세요.").font(.system(size: 14))
+      Text("이 영상은 기기에서만 열어요. 현재 DAL에서는 영상에 대화를 저장하거나 dot에게 보낼 수 없어요.").font(.system(size: 14))
         .foregroundStyle(mutedInk).lineSpacing(7)
       if let error = media.error {
         Text(error).foregroundStyle(.red)

@@ -25,19 +25,6 @@ public final class SameOriginRedirects: NSObject, URLSessionTaskDelegate, @unche
     session = URLSession(
       configuration: c, delegate: SameOriginRedirects(boundary: boundary), delegateQueue: nil)
   }
-  public func connect(cookies: [HTTPCookie]) async throws -> [Project] {
-    authCookies = boundary.cookies(
-      cookies, for: boundary.origin.appendingPathComponent("api/projects"))
-    guard !authCookies.isEmpty else { throw ConnectionError.notConnected }
-    do {
-      let data: ProjectList = try await request(path: "/api/projects", allowPending: true)
-      connected = true
-      return data.projects
-    } catch {
-      disconnect()
-      throw error
-    }
-  }
   public func disconnect() {
     connected = false
     authCookies = []
@@ -52,9 +39,9 @@ public final class SameOriginRedirects: NSObject, URLSessionTaskDelegate, @unche
     return URL(string: "/api/media/\(hash)", relativeTo: boundary.origin)?.absoluteURL
   }
   public func request<T: Decodable>(
-    path: String, method: String = "GET", body: [String: Any]? = nil, allowPending: Bool = false
+    path: String, method: String = "GET", body: [String: Any]? = nil
   ) async throws -> T {
-    guard connected || allowPending else { throw ConnectionError.notConnected }
+    guard connected else { throw ConnectionError.notConnected }
     guard let url = URL(string: path, relativeTo: boundary.origin)?.absoluteURL,
       boundary.permits(url), url.path.hasPrefix("/api/")
     else { throw ConnectionError.invalidOrigin }

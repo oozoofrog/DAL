@@ -1,10 +1,10 @@
 # DAL · 달
 
-사용자와 dot이 여러 프로젝트의 자료를 함께 검토하는 SwiftUI Mac 앱입니다. 영상의 특정 시점과 영역에 대화를 고정하고, 요청·제안·제작 결과·사용자 결정을 같은 대화에 남깁니다.
+사용자와 dot이 여러 프로젝트의 자료를 함께 검토하기 위해 개발 중인 SwiftUI Mac 앱입니다. 현재 개발 설치본은 로컬 영상 열기·재생·탐색과 연결 상태 안내를 제공합니다. 고정 대화·버전·검토 결정의 화면과 서버 모델은 준비돼 있지만 네이티브 연결은 아직 없습니다.
 
 ## 구성
 
-- SwiftUI와 AVPlayer로 만든 네이티브 화면: 프로젝트 목록, 영상과 영역 표시, 선택한 대화, 같은 구간의 전후 비교.
+- SwiftUI와 AVPlayer로 만든 네이티브 화면과 영상 검토 구성 요소. 서버 연결이 없는 현재 설치본은 로컬 영상을 열며, 프로젝트나 대화를 꾸며 넣지 않습니다.
 - 별도의 비공개 Sites 서버: D1에 프로젝트·버전·대화·결정을 저장하고 R2에 실제 영상을 보관합니다.
 - Site MCP 도구: dot이 저장된 요청을 읽고 실제 응답이나 결과를 남깁니다. 자동 호출·자동 응답을 약속하지 않습니다.
 - ‘이 도구 개선’ 대화: 이유와 변경 범위를 담은 제안에 사용자가 결정합니다. 결정만으로 코드를 실행하거나 앱을 배포하지 않습니다.
@@ -19,7 +19,7 @@ macOS 14 이상, Swift 6 도구와 Python 3가 필요합니다. 서버 개발에
 cd native
 swift test
 cd ..
-DOT_BACKEND_ORIGIN=https://your-private-site.example python3 native/scripts/build-app.py
+python3 native/scripts/build-app.py
 python3 native/scripts/install-app.py --launch
 ```
 
@@ -29,9 +29,11 @@ python3 native/scripts/install-app.py --launch
 
 ## 연결 상태
 
-앱의 **작업실 로그인**은 공식 ChatGPT 로그인 페이지를 엽니다. 메인 UI는 SwiftUI이고, WebKit은 로그인에만 사용합니다. 서버가 인증된 JSON을 반환해야 연결 상태가 됩니다. Sites는 네이티브 토큰 교환을 문서화하지 않으므로 실제 사용자 로그인, 보호 영상 재생과 쓰기 왕복을 각각 검증해야 합니다. 로그인 거부를 다른 인증 값으로 우회하지 않습니다.
+현재 DAL은 ChatGPT 웹사이트를 임베드하거나 로그인 사이트를 열지 않습니다. Safari 실행, WebKit 로그인, 쿠키 연결과 이전 웹 로그인 시작 플래그는 shipping target에서 제외했습니다. **dot 연결 상태**는 일반 네이티브 안내만 표시하며 연결 성공을 꾸미지 않습니다. 앱을 빌드하거나 로컬 영상을 여는 데 웹사이트나 서버 주소가 필요하지 않습니다.
 
-현재 패스키·Touch ID·Safari의 Google 로그인 상태를 DAL 연결에 사용하는 기능은 구현되지 않았습니다. Apple은 WKWebView 패스키에 서비스와 앱의 Associated Domains 관계를 요구합니다. DAL은 OpenAI 쪽 설정을 제어하지 않습니다. 시스템 인증 세션은 올바른 대안이지만, Sites가 네이티브 앱으로 인증 상태를 돌려주는 계약은 확인되지 않았습니다. 브라우저 로그인만으로 앱이 연결됐다고 표시하거나 다른 브라우저의 쿠키·키체인·토큰을 가져오지 않습니다. ([Apple 패스키](https://developer.apple.com/documentation/authenticationservices/supporting-passkeys), [시스템 인증 세션](https://developer.apple.com/documentation/authenticationservices/aswebauthenticationsession), [OpenAI 패스키](https://help.openai.com/en/articles/20001039-passkeys-to-secure-your-openai-account))
+보존된 Sites 서버는 별도 dot 도구 경계이며 DAL의 직접 인증 경로로 사용하지 않습니다. 그 서버의 사용자 HTTP API는 기존 ChatGPT 계정 인증 게이트에 의존하므로 현재 조건에서는 네이티브 채널로 연결되지 않습니다. 웹사이트 없는 공식 인증 전달 경로를 확인하지 못했으며, 브라우저 쿠키·키체인·토큰을 가져오거나 새 OAuth 절차를 만들어 우회하지 않습니다. 기존 데이터와 권한은 유지합니다.
+
+다음 후보는 로컬 SQLite와 등록된 stdio MCP 도구 서버를 기존 dot이 공유하는 방식입니다. 호스트 지원 확인과 사용자 등록 승인이 필요한 제안이며 아직 구현하지 않았습니다. 별도 Codex app-server가 기존 Work 대화를 그대로 잇는다고 가정하지 않습니다. ([Codex MCP](https://developers.openai.com/codex/extend/mcp), [app-server 범위](https://developers.openai.com/codex/app-server))
 
 카메라와 손 제스처는 현재 구현하지 않았습니다. 마우스·키보드로 작업하며, 영상 편집·멀티트랙·클립 자르기는 제공하지 않습니다.
 

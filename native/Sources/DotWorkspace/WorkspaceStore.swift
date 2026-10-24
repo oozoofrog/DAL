@@ -5,9 +5,10 @@ import WorkspaceCore
 @MainActor final class WorkspaceStore: ObservableObject {
 
   let client: SiteSession
-  @Published var configurationReady = false
-  @Published var connected = false
-  @Published var showingAuth = false
+  @Published private(set) var connected = false
+  @Published var showingConnectionStatus = false
+  func showConnectionStatus() { showingConnectionStatus = true }
+  func dismissConnectionStatus() { showingConnectionStatus = false }
   @Published var error: String?
   @Published var busy = false
   @Published var projects: [Project] = []
@@ -19,11 +20,13 @@ import WorkspaceCore
   @Published var drafts = DraftStore()
   var operations = OperationKeys()
   var stopPlayback: (() -> Void)?
-  init() {
-    let configured = Bundle.main.object(forInfoDictionaryKey: "DotBackendOrigin") as? String
-    let origin = URL(string: configured ?? "https://example.invalid")!
+  init(configuredOrigin: URL? = nil) {
+    let configured =
+      configuredOrigin
+      ?? (Bundle.main.object(forInfoDictionaryKey: "DotBackendOrigin") as? String).flatMap(
+        URL.init(string:))
+    let origin = configured ?? URL(string: "https://example.invalid")!
     client = SiteSession(origin: origin)
-    configurationReady = configured != nil && client.boundary.permits(origin)
     client.onExpired = {
       [weak self] in
       self?.connected = false
@@ -34,29 +37,9 @@ import WorkspaceCore
     }
   }
 
-  func beginLogin() {
-    guard configurationReady else {
-      error = "앱에 작업실 주소가 설정되지 않았습니다. 연결 주소를 지정해 앱을 빌드해 주세요."
-      return
-    }
-    error = nil
-    showingAuth = true
-  }
-  func connect(cookies: [HTTPCookie]) async {
-    do {
-      let projects = try await client.connect(cookies: cookies)
-      self.projects = projects
-      connected = true
-      showingAuth = false
-      error = nil
-    } catch {
-      self.error = error.localizedDescription
-    }
-  }
-
   func disconnect() {
     client.disconnect()
-    showingAuth = false
+    showingConnectionStatus = false
     project = nil
     artifact = nil
     destination = "home"

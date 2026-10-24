@@ -124,9 +124,9 @@ public enum ConnectionError: LocalizedError {
   case server(String)
   public var errorDescription: String? {
     switch self {
-    case .notConnected: return "작업실에 로그인해 연결을 확인해 주세요."
+    case .notConnected: return "현재 DAL에는 서버 연결 통로가 없습니다."
     case .invalidOrigin: return "허용된 작업실 주소만 연결할 수 있습니다."
-    case .authenticationExpired: return "로그인이 만료되었거나 접근이 거부되었습니다. 다시 연결해 주세요."
+    case .authenticationExpired: return "서버 연결을 사용할 수 없습니다."
     case .invalidResponse: return "서버 응답을 확인하지 못했습니다. 연결을 다시 확인해 주세요."
     case .server(let value): return value
     }
