@@ -8,7 +8,9 @@ import WorkspaceCore
   @Published var duration = 0.0
   @Published var resultDuration = 0.0
   @Published var time = 0.0
-  @Published var size = CGSize(width: 16, height: 9)
+  @Published var size = CGSize.zero
+  @Published private(set) var loadedOfflineVersion: OfflineVersion?
+  @Published private(set) var loadedSelectionID: UUID?
   @Published var playing = false
   @Published var comparing = false
   @Published var error: String?
@@ -57,6 +59,11 @@ import WorkspaceCore
     player.replaceCurrentItem(with: nil)
     resultPlayer.replaceCurrentItem(with: nil)
     duration = 0
+    size = .zero
+    loading = false
+    localURL = nil
+    loadedOfflineVersion = nil
+    loadedSelectionID = nil
     resultDuration = 0
     sourceVersionID = nil
     resultVersionID = nil
@@ -87,11 +94,20 @@ import WorkspaceCore
     await loadPair(source: source, sourceID: version.id, result: resultAsset, resultID: result?.id)
   }
   func loadLocal(_ url: URL) async {
-    localURL = url
-    await loadAsset(AVURLAsset(url: url))
+    await loadAsset(AVURLAsset(url: url), localURL: url)
   }
 
-  private func loadAsset(_ asset: AVURLAsset, versionID: String? = nil) async {
+  func isReadyForOffline(_ version: OfflineVersion?, selectionID: UUID) -> Bool {
+    guard let version else { return false }
+    return !loading && player.currentItem != nil && duration > 0 && size.width > 0 && size.height > 0
+      && loadedOfflineVersion == version && loadedSelectionID == selectionID
+      && Int((duration * 1000).rounded()) == version.durationMs
+  }
+  func loadOffline(_ version: OfflineVersion, selectionID: UUID) async {
+    let url = URL(fileURLWithPath: version.sourceLocator)
+    await loadAsset(AVURLAsset(url: url), versionID: version.id, localURL: url, offlineVersion: version, selectionID: selectionID)
+  }
+  private func loadAsset(_ asset: AVURLAsset, versionID: String? = nil, localURL: URL? = nil, offlineVersion: OfflineVersion? = nil, selectionID: UUID? = nil) async {
     clear()
     let token = UUID()
     sourceToken = token
@@ -110,18 +126,21 @@ import WorkspaceCore
         throw ConnectionError.server("영상 길이를 확인하지 못했습니다.")
       }
       let tracks = try await asset.loadTracks(withMediaType: .video)
-      var natural = CGSize(width: 16, height: 9)
-      if let track = tracks.first {
-        let raw = try await track.load(.naturalSize)
-        let transform = try await track.load(.preferredTransform)
-        let rect = CGRect(origin: .zero, size: raw).applying(transform)
-        natural = CGSize(width: abs(rect.width), height: abs(rect.height))
-      }
-      guard sourceToken == token else {
+      guard let track = tracks.first else { throw ConnectionError.server("영상 트랙을 확인하지 못했습니다.") }
+      let raw = try await track.load(.naturalSize)
+      let transform = try await track.load(.preferredTransform)
+      let rect = CGRect(origin: .zero, size: raw).applying(transform)
+      let natural = CGSize(width: abs(rect.width), height: abs(rect.height))
+      guard natural.width.isFinite, natural.height.isFinite, natural.width > 0, natural.height > 0 else { throw ConnectionError.server("영상 크기를 확인하지 못했습니다.") }
+      if let offlineVersion, Int((duration * 1000).rounded()) != offlineVersion.durationMs { throw ConnectionError.server("기록한 영상 길이와 달라요.") }
+      guard sourceToken == token, !Task.isCancelled else {
         return
       }
       self.duration = duration
       sourceVersionID = versionID
+      self.localURL = localURL
+      loadedOfflineVersion = offlineVersion
+      loadedSelectionID = selectionID
       size = natural
       player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
       time = 0

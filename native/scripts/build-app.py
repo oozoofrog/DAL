@@ -2,7 +2,7 @@
 """Explicit verified milestone build. No credentials, watcher, deployment or security changes."""
 from pathlib import Path
 import hashlib,json,os,plistlib,shutil,subprocess,uuid
-from build_config import backend_metadata
+from build_config import backend_metadata,hand_input_metadata,verification_environment
 root=Path(__file__).resolve().parent.parent
 output=root.parent/'outputs';output.mkdir(exist_ok=True)
 bundle=output/'DAL.app'
@@ -10,11 +10,12 @@ if bundle.exists():subprocess.run(['swift',str(root/'scripts/app-state.swift'),'
 try:metadata=backend_metadata(os.environ.get('DOT_BACKEND_ORIGIN'))
 except ValueError as error:raise SystemExit(str(error))
 version=json.loads((root/'VERSION.json').read_text())
-subprocess.run(['python3','-m','unittest','discover','-s','scripts/tests'],cwd=root,check=True)
-tests=subprocess.run(['swift','test','--cache-path','/tmp/dot-workspace-swift-cache'],cwd=root,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+verification_env=verification_environment(os.environ)
+subprocess.run(['python3','-m','unittest','discover','-s','scripts/tests'],cwd=root,check=True,env=verification_env)
+tests=subprocess.run(['swift','test','--cache-path','/tmp/dot-workspace-swift-cache'],cwd=root,env=verification_env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 (output/'native-swift-tests.log').write_text(tests.stdout)
 if tests.returncode:print(tests.stdout);raise SystemExit(tests.returncode)
-subprocess.run(['swift','build','--cache-path','/tmp/dot-workspace-swift-cache'],cwd=root,check=True)
+subprocess.run(['swift','build','--cache-path','/tmp/dot-workspace-swift-cache'],cwd=root,check=True,env=verification_env)
 printed=subprocess.check_output(['swift','build','--show-bin-path'],cwd=root,text=True).strip()
 binary=next((p for p in [Path(printed)/'DotWorkspace',root/'.build/out/Products/Debug/DotWorkspace'] if p.is_file()),None)
 if binary is None:raise SystemExit('Built executable not found')
@@ -27,6 +28,7 @@ if not icon.is_file():raise SystemExit('The approved AppIcon.icns resource is re
 shutil.copy2(icon,stage/'Contents/Resources/AppIcon.icns')
 info={'CFBundleDevelopmentRegion':'ko','CFBundleDisplayName':'DAL','CFBundleExecutable':'DotWorkspace','CFBundleIdentifier':'com.eyerama.dotworkspace','CFBundleName':'DAL','CFBundlePackageType':'APPL','CFBundleShortVersionString':version['version'],'CFBundleVersion':str(version['build']),'CFBundleIconFile':'AppIcon.icns','LSMinimumSystemVersion':'14.0','LSApplicationCategoryType':'public.app-category.productivity','NSHighResolutionCapable':True,'NSPrincipalClass':'NSApplication'}
 info.update(metadata)
+info.update(hand_input_metadata())
 with(stage/'Contents/Info.plist').open('wb')as f:plistlib.dump(info,f)
 subprocess.run(['codesign','--force','--deep','--sign','-',str(stage)],check=True)
 subprocess.run(['codesign','--verify','--deep','--strict',str(stage)],check=True)

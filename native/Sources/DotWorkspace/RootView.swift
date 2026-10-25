@@ -8,7 +8,7 @@ let ivory = Color(red: 0.97, green: 0.97, blue: 0.94)
 struct WorkspaceButtonStyle: ButtonStyle {
   var prominent = false
   func makeBody(configuration: Configuration) -> some View {
-    configuration.label.font(.system(size: 15, weight: .medium)).padding(.horizontal, 15).frame(
+    configuration.label.font(.system(size: 16, weight: .medium)).padding(.horizontal, 15).frame(
       minHeight: 44
     ).background(prominent ? ink : Color.white).foregroundStyle(prominent ? Color.white : ink)
       .clipShape(RoundedRectangle(cornerRadius: 7)).overlay(

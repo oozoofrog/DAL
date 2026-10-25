@@ -1,5 +1,7 @@
 # 개발·검증 안내
 
+현재 네이티브 소스는 DAL 0.1.0 (9)의 오프라인 메모·선택 ZIP 내보내기와 기본 OFF 손 입력입니다. [사용·복구 안내](OFFLINE-WORKBENCH.md)를 먼저 확인하세요. 아래 Node/Sites 명령은 별도 서버 소스 검증용이며 앱 실행의 필수 조건이 아닙니다. 모든 명령은 저장소 최상위 폴더 기준입니다.
+
 ## 검증 계약
 
 ```sh
@@ -8,7 +10,8 @@ mkdir -p .openai
 cp config/hosting.example.json .openai/hosting.json
 npm test
 npm run typecheck
-cd native && swift test
+DAL_FORBID_REAL_CAMERA=1 swift test --package-path native
+python3 -m unittest discover -s native/scripts/tests
 ```
 
 서버 테스트는 실제 Drizzle SQL 마이그레이션을 SQLite에서 실행한다. 중복 전송, 변경 충돌, 자료 범위, 결과와 결정의 연결, 해결/재열기, MIME·크기·바이트 범위 응답을 검증한다. 네이티브 테스트는 origin·쿠키 제한, 영상 좌표/구간, 대화별 초안과 재시도, 재생 소스 변경을 검사한다.
@@ -19,7 +22,7 @@ cd native && swift test
 
 자신의 owner-private Sites 서버와 D1/R2를 구성하고 공식 starter·소스 동기화·배포 절차를 따른다. 배포 식별자를 가진 `.openai/hosting.json`, 환경 파일과 런타임 상태는 로컬 전용이며 공개 소스에 커밋하지 않는다. API/MCP와 최소 로그인 화면만 배포한다. 실제 자료와 대화는 서버의 비공개 데이터다.
 
-네이티브 앱 빌드에는 서버 주소가 필요하지 않다. 선택적 `DOT_BACKEND_ORIGIN` 메타데이터를 보존할 수는 있지만, 현재 앱에서 사이트를 열거나 인증·업로드 경로를 활성화하지 않는다. Sites 서버 설정은 별도 도구/서버 개발용이며 DAL 실행의 필수 조건이 아니다. 앱에 서비스 토큰을 넣지 않는다. 현재 검증 범위는 웹사이트 경로 제외, 로컬 영상 재생과 설치다. 실제 네이티브 대화·동기화·승인은 미연결이며 브라우저 화면 표시나 별도 dot 도구 읽기와 구분한다.
+네이티브 앱 빌드에는 서버 주소가 필요하지 않다. 선택적 `DOT_BACKEND_ORIGIN` 메타데이터를 보존할 수는 있지만, 현재 앱에서 사이트를 열거나 인증·업로드 경로를 활성화하지 않는다. Sites 서버 설정은 별도 도구/서버 개발용이며 DAL 실행의 필수 조건이 아니다. 앱에 서비스 토큰을 넣지 않는다. 현재 검증 범위는 로컬 메모의 저장·복구·고정 좌표, 선택 문서/실제 캡처/ZIP, 기본 OFF 손 입력의 합성 시험과 설치다. 실제 카메라 흐름·기기·추적 품질은 시험하지 않았다. 실제 네이티브 대화·동기화·승인은 미연결이며 브라우저 화면 표시나 별도 dot 도구 읽기와 구분한다.
 
 ## 검증된 개발 단계 설치
 

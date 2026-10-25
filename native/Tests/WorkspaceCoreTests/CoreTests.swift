@@ -67,3 +67,11 @@ import Testing
     MutationResult.self, from: Data("{\"threadId\":\"thread\",\"revision\":1}".utf8))
   #expect(valid.threadId == "thread")
 }
+@Test func explicitEmptyDraftIsDifferentFromNoDraft() {
+ var drafts=DraftStore()
+ #expect(drafts.bodyIfPresent("a")==nil)
+ drafts.set("a",body:"")
+ #expect(drafts.bodyIfPresent("a")==Optional(""))
+ drafts.clearSubmitted("a",body:"")
+ #expect(drafts.bodyIfPresent("a")==nil)
+}

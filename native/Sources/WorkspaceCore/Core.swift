@@ -97,6 +97,7 @@ public struct DraftStore: Sendable {
     values[id] = draft
   }
   public func body(_ id: String) -> String { values[id]?.body ?? "" }
+  public func bodyIfPresent(_ id: String) -> String? { values[id]?.body }
   public func kind(_ id: String) -> String { values[id]?.kind ?? "reply" }
   public mutating func setKind(_ id: String, kind: String) {
     guard ["reply", "rerequest"].contains(kind) else { return }
@@ -105,7 +106,7 @@ public struct DraftStore: Sendable {
     values[id] = draft
   }
   public mutating func clearSubmitted(_ id: String, body: String, kind: String = "reply") {
-    if values[id]?.body == body && values[id]?.kind == kind { values[id] = Draft() }
+    if values[id]?.body == body && values[id]?.kind == kind { values.removeValue(forKey: id) }
   }
 }
 public struct OperationKeys: Sendable {
